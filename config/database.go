@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"go-ledger/models"
+	"os"
 	"strings"
 
 	"github.com/spf13/viper"
@@ -30,11 +31,26 @@ func InitConfig() {
 
 // InitDB 初始化数据库连接（读取配置并建立连接）
 func InitDB() {
-	host := viper.GetString("database.host")
-	port := viper.GetString("database.port")
-	user := viper.GetString("database.user")
-	password := viper.GetString("database.password")
-	dbname := viper.GetString("database.dbname")
+	host := os.Getenv("MYSQL_HOST")
+	if host == "" {
+		host = viper.GetString("database.host")
+	}
+	port := os.Getenv("MYSQL_PORT")
+	if port == "" {
+		port = viper.GetString("database.port")
+	}
+	user := os.Getenv("MYSQL_USERNAME")
+	if user == "" {
+		user = viper.GetString("database.user")
+	}
+	password := os.Getenv("MYSQL_PASSWORD")
+	if password == "" {
+		password = viper.GetString("database.password")
+	}
+	dbname := os.Getenv("MYSQL_DATABASE")
+	if dbname == "" {
+		dbname = viper.GetString("database.dbname")
+	}
 
 	dns := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 		user, password, host, port, dbname)
