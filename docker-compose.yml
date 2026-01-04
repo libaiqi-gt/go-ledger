@@ -1,0 +1,33 @@
+services:
+  app:
+    build: .
+    container_name: go-ledger-app
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/app
+    environment:
+      - DATABASE_HOST=db
+      - DATABASE_PORT=3306
+      - DATABASE_USER=root
+      - DATABASE_PASSWORD=root_password
+      - DATABASE_DBNAME=ledger_db
+      - JWT_SECRET=docker_secret_key
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  db:
+    image: mysql:8.0
+    container_name: go-ledger-db
+    ports:
+      - "3307:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=root_password
+      - MYSQL_DATABASE=ledger_db
+    volumes:
+      - mysql_data:/var/lib/mysql
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
