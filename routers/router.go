@@ -21,9 +21,10 @@ func SetupRouter() *gin.Engine {
 		auth := api.Group("/")
 		auth.Use(middlewares.JwtAuthMiddleware()) // 挂载中间件
 		{
-			auth.POST("/entries", controllers.CreateEntry)       // 记账
-			auth.GET("/entries", controllers.FindEntries)        // 分页查询账单
-			auth.DELETE("/entries/:id", controllers.DeleteEntry) // 删除账单
+			auth.POST("/entries", controllers.CreateEntry)           // 记账
+			auth.POST("/entries/smart", controllers.CreateEntryByAI) // 智能记账 (AI)
+			auth.GET("/entries", controllers.FindEntries)            // 分页查询账单
+			auth.DELETE("/entries/:id", controllers.DeleteEntry)     // 删除账单
 		}
 	}
 	return r

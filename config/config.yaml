@@ -6,3 +6,7 @@ database:
   dbname: "ledger_db"
 jwt:
   secret: "my_secret_key_12345"
+ai:
+  api_key: "${AI_API_KEY}"
+  base_url: "${AI_BASE_URL}"
+  model: "${AI_MODEL}"

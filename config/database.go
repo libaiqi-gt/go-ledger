@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/joho/godotenv"
 	"github.com/spf13/viper"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -27,6 +28,17 @@ func InitConfig() {
 	// 将 . 替换为 _，例如 database.host -> DATABASE_HOST
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
+
+	// 关键：必须显式调用 godotenv 加载 .env 文件到系统环境变量
+	// 否则 viper 读取到的可能是空值，或者 ${ENV_VAR} 字符串本身
+	_ = godotenv.Load()
+
+	// 重新读取配置以解析 ${ENV_VAR}
+	// viper 默认不会自动替换 config.yaml 中的 ${VAR}，需要手动处理或使用 ExpandEnv
+	// 这里我们直接依赖 viper.AutomaticEnv() 和 viper.GetString() 的结合
+	// 但要注意：viper.GetString("ai.api_key") 此时可能直接返回 "${AI_API_KEY}" 字符串
+	// 解决方法：使用 os.ExpandEnv 处理读取到的值，或者让 viper 自动处理
+	// 更好的方式：既然已经在 config.yaml 里写了 ${VAR}，我们可以在读取时手动 Expand
 }
 
 // InitDB 初始化数据库连接（读取配置并建立连接）

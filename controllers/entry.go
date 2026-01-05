@@ -20,6 +20,7 @@ type CreateEntryInput struct {
 }
 
 var entryService = new(services.EntryService)
+var aiService = new(services.AIService)
 
 // CreateEntry - 新增账单
 func CreateEntry(c *gin.Context) {
@@ -51,6 +52,47 @@ func CreateEntry(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"data": entry})
+}
+
+// CreateEntryByAIInput 定义 AI 记账的输入参数
+type CreateEntryByAIInput struct {
+	Text string `json:"text" binding:"required"`
+}
+
+// CreateEntryByAI - 智能记账接口
+func CreateEntryByAI(c *gin.Context) {
+	var input CreateEntryByAIInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "无法获取用户ID"})
+		return
+	}
+
+	// 1. 调用 AI 分析
+	entry, err := aiService.AnalyzeEntry(input.Text)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "AI 分析失败: " + err.Error()})
+		return
+	}
+
+	// 2. 补全 UserID
+	entry.UserID = userID.(uint)
+
+	// 3. 保存到数据库 (复用 EntryService)
+	if err := entryService.CreateEntry(entry); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "保存失败: " + err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "识别并保存成功",
+		"data":    entry,
+	})
 }
 
 // FindEntries - 获取所有账单
